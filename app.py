@@ -1,81 +1,88 @@
-# risiko_simulator_app.py
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
 
+def roll_specific_dice(dice_list):
+    rolls = [np.random.randint(1, sides + 1) + bonus for sides, bonus in dice_list]
+    return sorted(rolls, reverse=True)
 
-def roll_dice(n_dice, sides, bonus):
-    return sorted(
-        [np.random.randint(1, sides + 1) + bonus for _ in range(n_dice)],
-        reverse=True)
+def simulate_battle(att_dice_config, def_dice_config):
+    att_rolls = roll_specific_dice(att_dice_config)
+    def_rolls = roll_specific_dice(def_dice_config)
+    att_loss, def_loss = 0, 0
+    for a, d in zip(att_rolls[:2], def_rolls[:2]):
+        if a > d:
+            def_loss += 1
+        else:
+            att_loss += 1
+    return att_loss, def_loss
 
+def run_simulations(n, att_dice_config, def_dice_config):
+    att_remaining = []
+    def_remaining = []
+    for _ in range(n):
+        att = 3
+        deff = 2
+        a_loss, d_loss = simulate_battle(att_dice_config, def_dice_config)
+        att -= a_loss
+        deff -= d_loss
+        att_remaining.append(att)
+        def_remaining.append(deff)
+    return np.array(att_remaining), np.array(def_remaining)
 
-def simulate_battle(att_troops, def_troops, att_die, def_die, att_bonus,
-                    def_bonus):
-    a = att_troops
-    d = def_troops
-    while a > 1 and d > 0:
-        att_rolls = roll_dice(min(3, a - 1), att_die, att_bonus)
-        def_rolls = roll_dice(min(2, d), def_die, def_bonus)
-        for att, df in zip(att_rolls, def_rolls):
-            if att > df:
-                d -= 1
-            else:
-                a -= 1
-    return a, d
-
-
-def run_simulations(n, att_troops, def_troops, att_die, def_die, att_bonus,
-                    def_bonus):
-    results = [
-        simulate_battle(att_troops, def_troops, att_die, def_die, att_bonus,
-                        def_bonus)
-        for _ in range(n)]
-    att_remaining = [res[0] for res in results]
-    def_remaining = [res[1] for res in results]
-    return att_remaining, def_remaining
-
-
+st.set_page_config(page_title="Risiko Kampfrechner", layout="wide")
 st.title("🎲 Risiko Kampfrechner")
 
-st.sidebar.header("Einstellungen")
+with st.expander("ℹ️ Wie funktioniert das?"):
+    st.markdown("""
+    - Der Angreifer würfelt mit **3 Würfeln**, der Verteidiger mit **2**.
+    - Du kannst für jeden Würfel den Typ (z.B. W6 oder W8) und einen Bonus angeben.
+    - Wir simulieren viele Kämpfe und zeigen dir, wie oft der Angreifer gewinnt und wie viele Truppen dann typischerweise übrig bleiben.
+    """)
 
-att_troops = st.sidebar.number_input("Angreifer-Truppen", min_value=1, value=10)
-def_troops = st.sidebar.number_input("Verteidiger-Truppen", min_value=1,
-                                     value=5)
-att_die = st.sidebar.selectbox("Angreifer-Würfel", [6, 8, 10, 12, 20], index=0)
-def_die = st.sidebar.selectbox("Verteidiger-Würfel", [6, 8, 10, 12, 20],
-                               index=0)
-att_bonus = st.sidebar.number_input("Angreifer-Bonus", value=0)
-def_bonus = st.sidebar.number_input("Verteidiger-Bonus", value=0)
-n_sim = st.sidebar.number_input("Anzahl Simulationen", min_value=100,
-                                max_value=50000, step=1000, value=10000)
+st.header("⚙️ Würfel einstellen")
 
-if st.button("🔁 Kampf simulieren"):
+cols = st.columns(5)
+att_dice_config = [
+    (cols[i].selectbox(f"Angreifer W{i+1}", [6, 8, 10], key=f"a{i}"),
+     cols[i].number_input(f"Bonus A{i+1}", value=0, key=f"ab{i}"))
+    for i in range(3)
+]
+def_dice_config = [
+    (cols[i+3].selectbox(f"Verteidiger W{i+1}", [6, 8, 10], key=f"d{i}"),
+     cols[i+3].number_input(f"Bonus V{i+1}", value=0, key=f"db{i}"))
+    for i in range(2)
+]
+
+n_sim = st.slider("🔁 Anzahl Simulationen", 500, 20000, 5000, step=500)
+
+if st.button("▶️ Simulation starten"):
     with st.spinner("Simuliere..."):
-        att_res, def_res = run_simulations(n_sim, att_troops, def_troops,
-                                           att_die, def_die, att_bonus,
-                                           def_bonus)
+        att_res, def_res = run_simulations(n_sim, att_dice_config, def_dice_config)
 
-    att_mean = np.mean(att_res)
-    def_mean = np.mean(def_res)
-    att_std = np.std(att_res)
-    def_std = np.std(def_res)
-    win_prob = np.mean([d == 0 for d in def_res]) * 100
+    att_wins = att_res > 0
+    def_wins = def_res > 0
+    ties = (att_res == 0) & (def_res == 0)
 
-    st.subheader("📊 Ergebnisse")
-    st.markdown(f"- 🛡️ Verteidiger besiegt in **{win_prob:.2f}%** der Fälle")
-    st.markdown(
-        f"- 💂 Erwartete verbleibende Angreifer: **{att_mean:.2f} ± {att_std:.2f}**")
-    st.markdown(
-        f"- 🏰 Erwartete verbleibende Verteidiger: **{def_mean:.2f} ± {def_std:.2f}**")
+    win_rate_att = np.mean(att_wins) * 100
+    win_rate_def = np.mean(def_wins) * 100
+    tie_rate = np.mean(ties) * 100
 
-    fig, ax = plt.subplots()
-    ax.hist(att_res, bins=range(0, max(att_res) + 2), alpha=0.7,
-            label='Angreifer')
-    ax.hist(def_res, bins=range(0, max(def_res) + 2), alpha=0.7,
-            label='Verteidiger')
-    ax.set_xlabel("Verbleibende Truppen")
-    ax.set_ylabel("Anzahl Simulationen")
-    ax.legend()
-    st.pyplot(fig)
+    att_mean = np.mean(att_res[att_wins]) if att_wins.any() else 0
+    att_std = np.std(att_res[att_wins]) if att_wins.any() else 0
+
+    def_mean = np.mean(def_res[def_wins]) if def_wins.any() else 0
+    def_std = np.std(def_res[def_wins]) if def_wins.any() else 0
+
+    st.subheader("📊 Ergebnis")
+
+    if win_rate_att > win_rate_def:
+        st.success(f"✅ **Der Angreifer gewinnt in {win_rate_att:.1f}% der Fälle** und hat dann im Schnitt **{att_mean:.2f} Truppen** übrig.")
+    elif win_rate_def > win_rate_att:
+        st.error(f"🛡️ **Der Verteidiger gewinnt in {win_rate_def:.1f}% der Fälle** und hat dann im Schnitt **{def_mean:.2f} Truppen** übrig.")
+    else:
+        st.warning("⚖️ Beide Seiten haben ungefähr gleich gute Chancen.")
+
+    if tie_rate > 0:
+        st.markdown(f"🔄 Unentschieden in **{tie_rate:.2f}%** der Fälle")
+
+    st.caption(f"📈 Typische Schwankung: ±{att_std:.2f} Truppen beim Angreifer, ±{def_std:.2f} beim Verteidiger")
