@@ -152,12 +152,15 @@ with st.expander("ℹ️ Wie funktioniert das?", expanded=False):
     st.markdown("""
     - Gib ALLE Angreifer-Truppen an, die auf dem Feld stehen. Der Rechner 
     berücksichtigt, dass eine Truppe immer zurückbleiben muss.
+    - Der Angreifer würfelt mit max **3 Würfeln**, der Verteidiger mit max 
+    **2**.
     - Der Rechner berücksichtigt, dass gegen Ende des Kampfes oft weniger 
     Würfel geworfen werden (wenn z.B. der Verteidiger nur noch 1 Truppe übrig hat).
-    - Der Angreifer würfelt mit **3 Würfeln**, der Verteidiger mit **2**.
     - Du kannst den **Würfeltyp (W6 oder W8)** für jeden Würfel einstellen.
     - Zusätzlich kannst du jedem Rangplatz (höchster, zweithöchster, usw.) einen Bonus geben.
     - Es wird sehr oft simuliert, wie der Kampf ausgeht, um typische Ergebnisse zu berechnen.
+    - Angreifer-Sieg: Verteidiger hat 0 Truppen → Gebiet erobert.
+    - Verteidiger-Sieg: Angreifer hat 1 Truppe → kein weiterer Angriff möglich.
     """)
 
 st.header("⚙️ Kampf-Einstellungen")
@@ -216,7 +219,11 @@ n_sim = st.slider(
     step=500
 )
 
+# --- Simulation starten Button ---
 if st.button("▶️ Simulation starten"):
+    st.session_state["simulate"] = True
+
+if st.session_state.get("simulate", False):
     with st.spinner("Simuliere..."):
         att_res, def_res = run_simulations(
             n_sim,
@@ -261,7 +268,11 @@ if st.button("▶️ Simulation starten"):
 
     st.caption(f"📈 Typische Schwankung: ±{att_std:.2f} Truppen beim Angreifer, ±{def_std:.2f} beim Verteidiger")
 
+    # Simulation-Flag zurücksetzen
+    st.session_state["simulate"] = False
+
 st.markdown("")  # a bit of space in between
 if st.button("🔄 Alles zurücksetzen"):
+    st.session_state.clear()
     st.rerun()
 
