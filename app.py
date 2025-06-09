@@ -159,6 +159,8 @@ with st.expander("ℹ️ Wie funktioniert das?", expanded=False):
     - Zusätzlich kannst du jedem Rangplatz (höchster, zweithöchster, usw.) einen Bonus geben.
     - Es wird sehr oft simuliert, wie der Kampf ausgeht, um typische Ergebnisse zu berechnen.
     """)
+    if st.button("🔄 Alles zurücksetzen"):
+        st.experimental_rerun()
 
 st.header("⚙️ Kampf-Einstellungen")
 
@@ -179,38 +181,33 @@ st.subheader("🎯 Würfel konfigurieren")
 
 dice_options = {"W6": 6, "W8": 8}
 
-with st.expander("💂 Angreifer Würfel", expanded=True):
-    st.markdown("**Würfel 1**")
-    attacker_die_1 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="a_die_1")]
-    attacker_bonus_1 = st.number_input("Bonus höchster Würfel", value=0, key="a_bonus_1")
-
-    st.markdown("**Würfel 2**")
-    attacker_die_2 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="a_die_2")]
-    attacker_bonus_2 = st.number_input("Bonus zweithöchster Würfel", value=0, key="a_bonus_2")
-
-    st.markdown("**Würfel 3**")
-    attacker_die_3 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="a_die_3")]
-    attacker_bonus_3 = st.number_input("Bonus dritthöchster Würfel", value=0, key="a_bonus_3")
-
-    dice_config_attacker = [
-        (attacker_die_1, attacker_bonus_1),
-        (attacker_die_2, attacker_bonus_2),
-        (attacker_die_3, attacker_bonus_3),
+with st.expander("💂 Angreifer Konfiguration", expanded=True):
+    st.markdown("**Würfeltypen**")
+    attacker_dice = [
+        dice_options[st.selectbox("Würfeltyp 1", dice_options.keys(), key="a_die_1")],
+        dice_options[st.selectbox("Würfeltyp 2", dice_options.keys(), key="a_die_2")],
+        dice_options[st.selectbox("Würfeltyp 3", dice_options.keys(), key="a_die_3")],
     ]
 
-with st.expander("🛡️ Verteidiger Würfel", expanded=True):
-    st.markdown("**Würfel 1**")
-    defender_die_1 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="d_die_1")]
-    defender_bonus_1 = st.number_input("Bonus höchster Würfel", value=0, key="d_bonus_1")
+    st.markdown("**Boni auf Würfelergebnisse (nicht an Würfel gebunden)**")
+    attacker_bonus_1 = st.number_input("Bonus auf höchsten Würfel", value=0, key="a_bonus_highest")
+    attacker_bonus_2 = st.number_input("Bonus auf zweithöchsten Würfel", value=0, key="a_bonus_second")
+    attacker_bonus_3 = st.number_input("Bonus auf dritthöchsten Würfel", value=0, key="a_bonus_third")
 
-    st.markdown("**Würfel 2**")
-    defender_die_2 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="d_die_2")]
-    defender_bonus_2 = st.number_input("Bonus zweithöchster Würfel", value=0, key="d_bonus_2")
+    dice_config_attacker = list(zip(attacker_dice, [attacker_bonus_1, attacker_bonus_2, attacker_bonus_3]))
 
-    dice_config_defender = [
-        (defender_die_1, defender_bonus_1),
-        (defender_die_2, defender_bonus_2),
+with st.expander("🛡️ Verteidiger Konfiguration", expanded=True):
+    st.markdown("**Würfeltypen**")
+    defender_dice = [
+        dice_options[st.selectbox("Würfeltyp 1", dice_options.keys(), key="d_die_1")],
+        dice_options[st.selectbox("Würfeltyp 2", dice_options.keys(), key="d_die_2")],
     ]
+
+    st.markdown("**Boni auf Würfelergebnisse**")
+    defender_bonus_1 = st.number_input("Bonus auf höchsten Würfel", value=0, key="d_bonus_highest")
+    defender_bonus_2 = st.number_input("Bonus auf zweithöchsten Würfel", value=0, key="d_bonus_second")
+
+    dice_config_defender = list(zip(defender_dice, [defender_bonus_1, defender_bonus_2]))
 
 
 n_sim = st.slider(
