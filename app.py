@@ -219,11 +219,7 @@ n_sim = st.slider(
     step=500
 )
 
-# --- Simulation starten Button ---
 if st.button("▶️ Simulation starten"):
-    st.session_state["simulate"] = True
-
-if st.session_state.get("simulate", False):
     with st.spinner("Simuliere..."):
         att_res, def_res = run_simulations(
             n_sim,
@@ -267,12 +263,3 @@ if st.session_state.get("simulate", False):
         st.info("⚖️ Beide Seiten haben ungefähr gleich gute Chancen.")
 
     st.caption(f"📈 Typische Schwankung: ±{att_std:.2f} Truppen beim Angreifer, ±{def_std:.2f} beim Verteidiger")
-
-    # Simulation-Flag zurücksetzen
-    st.session_state["simulate"] = False
-
-st.markdown("")  # a bit of space in between
-if st.button("🔄 Alles zurücksetzen"):
-    st.session_state.clear()
-    st.rerun()
-
