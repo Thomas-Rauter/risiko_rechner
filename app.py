@@ -165,7 +165,7 @@ st.header("⚙️ Kampf-Einstellungen")
 col1, col2 = st.columns(2)
 attacker_total = col1.number_input(
     "💂 Truppenanzahl Angreifer",
-    min_value=4,
+    min_value=2,
     value=10
 )
 defender_total = col2.number_input(
@@ -176,25 +176,42 @@ defender_total = col2.number_input(
 
 st.subheader("🎯 Würfel konfigurieren")
 
-cols = st.columns(5)
 
-# Angreifer: 3 Würfel
-dice_config_attacker = [
-    (cols[0].selectbox("Angreifer Würfeltyp 1", [6, 8], key="a_die_1"),
-     cols[0].number_input("Bonus höchster Würfel", value=0, key="a_bonus_1")),
-    (cols[1].selectbox("Angreifer Würfeltyp 2", [6, 8], key="a_die_2"),
-     cols[1].number_input("Bonus zweithöchster Würfel", value=0, key="a_bonus_2")),
-    (cols[2].selectbox("Angreifer Würfeltyp 3", [6, 8], key="a_die_3"),
-     cols[2].number_input("Bonus dritthöchster Würfel", value=0, key="a_bonus_3")),
-]
+dice_options = {"W6": 6, "W8": 8}
 
-# Verteidiger: 2 Würfel
-dice_config_defender = [
-    (cols[3].selectbox("Verteidiger Würfeltyp 1", [6, 8], key="d_die_1"),
-     cols[3].number_input("Bonus höchster Würfel", value=0, key="d_bonus_1")),
-    (cols[4].selectbox("Verteidiger Würfeltyp 2", [6, 8], key="d_die_2"),
-     cols[4].number_input("Bonus zweithöchster Würfel", value=0, key="d_bonus_2")),
-]
+with st.expander("💂 Angreifer Würfel", expanded=True):
+    st.markdown("**Würfel 1**")
+    attacker_die_1 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="a_die_1")]
+    attacker_bonus_1 = st.number_input("Bonus höchster Würfel", value=0, key="a_bonus_1")
+
+    st.markdown("**Würfel 2**")
+    attacker_die_2 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="a_die_2")]
+    attacker_bonus_2 = st.number_input("Bonus zweithöchster Würfel", value=0, key="a_bonus_2")
+
+    st.markdown("**Würfel 3**")
+    attacker_die_3 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="a_die_3")]
+    attacker_bonus_3 = st.number_input("Bonus dritthöchster Würfel", value=0, key="a_bonus_3")
+
+    dice_config_attacker = [
+        (attacker_die_1, attacker_bonus_1),
+        (attacker_die_2, attacker_bonus_2),
+        (attacker_die_3, attacker_bonus_3),
+    ]
+
+with st.expander("🛡️ Verteidiger Würfel", expanded=True):
+    st.markdown("**Würfel 1**")
+    defender_die_1 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="d_die_1")]
+    defender_bonus_1 = st.number_input("Bonus höchster Würfel", value=0, key="d_bonus_1")
+
+    st.markdown("**Würfel 2**")
+    defender_die_2 = dice_options[st.selectbox("Würfeltyp", dice_options.keys(), key="d_die_2")]
+    defender_bonus_2 = st.number_input("Bonus zweithöchster Würfel", value=0, key="d_bonus_2")
+
+    dice_config_defender = [
+        (defender_die_1, defender_bonus_1),
+        (defender_die_2, defender_bonus_2),
+    ]
+
 
 n_sim = st.slider(
     "🔁 Anzahl Simulationen",
