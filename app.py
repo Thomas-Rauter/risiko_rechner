@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-# Richtige Bonus-Zuweisung: erst Würfeln, dann sortieren, dann Bonus anwenden
+# Würfeln: zuerst alle Basiswürfe, dann Bonusvergabe auf höchste Ergebnisse
 def roll_specific_dice(dice_list):
     base_rolls = [np.random.randint(1, sides + 1) for sides, _ in dice_list]
     bonuses = sorted([bonus for _, bonus in dice_list], reverse=True)
@@ -9,7 +9,7 @@ def roll_specific_dice(dice_list):
     final_rolls = [r + b for r, b in zip(sorted_rolls, bonuses)]
     return final_rolls
 
-# Simuliert einen einzelnen Kampf
+# Eine einzelne Kampfrunde (3 vs 2 Würfel)
 def simulate_battle(att_dice_config, def_dice_config):
     att_rolls = roll_specific_dice(att_dice_config)
     def_rolls = roll_specific_dice(def_dice_config)
@@ -21,7 +21,7 @@ def simulate_battle(att_dice_config, def_dice_config):
             att_loss += 1
     return att_loss, def_loss
 
-# Mehrfach-Simulation ganzer Kämpfe
+# Wiederholte Simulation mit vollständigem Kampfverlauf
 def run_simulations(n, att_dice_config, def_dice_config, att_total, def_total):
     att_remaining = []
     def_remaining = []
@@ -43,9 +43,9 @@ st.title("🎲 Risiko Kampfrechner")
 with st.expander("ℹ️ Wie funktioniert das?", expanded=False):
     st.markdown("""
     - Der Angreifer würfelt mit **3 Würfeln**, der Verteidiger mit **2**.
-    - Du kannst für jeden Würfel den Typ (W6 oder W8) und einen Bonus angeben.
-    - Die Boni gelten **immer auf die höchsten Würfe** – der stärkste Bonus auf das höchste Ergebnis, usw.
-    - Wir simulieren viele Kämpfe zwischen gleichbleibenden Truppenstärken.
+    - Du kannst den **Würfeltyp (W6 oder W8)** für jeden Würfel einstellen.
+    - Zusätzlich kannst du jedem Rangplatz (höchster, zweithöchster, usw.) einen Bonus geben.
+    - Es wird sehr oft simuliert, wie der Kampf ausgeht, um typische Ergebnisse zu berechnen.
     """)
 
 st.header("⚙️ Kampf-Einstellungen")
@@ -60,16 +60,20 @@ cols = st.columns(5)
 
 # Angreifer: 3 Würfel
 att_dice_config = [
-    (cols[i].selectbox(f"Angreifer W{i+1}", [6, 8], key=f"a{i}"),
-     cols[i].number_input(f"Bonus A{i+1}", value=0, key=f"ab{i}"))
-    for i in range(3)
+    (cols[0].selectbox("Angreifer Würfeltyp 1", [6, 8], key="a_die_1"),
+     cols[0].number_input("Bonus höchster Würfel", value=0, key="a_bonus_1")),
+    (cols[1].selectbox("Angreifer Würfeltyp 2", [6, 8], key="a_die_2"),
+     cols[1].number_input("Bonus zweithöchster Würfel", value=0, key="a_bonus_2")),
+    (cols[2].selectbox("Angreifer Würfeltyp 3", [6, 8], key="a_die_3"),
+     cols[2].number_input("Bonus dritthöchster Würfel", value=0, key="a_bonus_3")),
 ]
 
 # Verteidiger: 2 Würfel
 def_dice_config = [
-    (cols[i+3].selectbox(f"Verteidiger W{i-2}", [6, 8], key=f"d{i}"),
-     cols[i+3].number_input(f"Bonus V{i-2}", value=0, key=f"db{i}"))
-    for i in range(3, 5)
+    (cols[3].selectbox("Verteidiger Würfeltyp 1", [6, 8], key="d_die_1"),
+     cols[3].number_input("Bonus höchster Würfel", value=0, key="d_bonus_1")),
+    (cols[4].selectbox("Verteidiger Würfeltyp 2", [6, 8], key="d_die_2"),
+     cols[4].number_input("Bonus zweithöchster Würfel", value=0, key="d_bonus_2")),
 ]
 
 n_sim = st.slider("🔁 Anzahl Simulationen", 500, 20000, 5000, step=500)
