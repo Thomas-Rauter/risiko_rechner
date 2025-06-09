@@ -159,8 +159,6 @@ with st.expander("ℹ️ Wie funktioniert das?", expanded=False):
     - Zusätzlich kannst du jedem Rangplatz (höchster, zweithöchster, usw.) einen Bonus geben.
     - Es wird sehr oft simuliert, wie der Kampf ausgeht, um typische Ergebnisse zu berechnen.
     """)
-    if st.button("🔄 Alles zurücksetzen"):
-        st.experimental_rerun()
 
 st.header("⚙️ Kampf-Einstellungen")
 
@@ -189,7 +187,7 @@ with st.expander("💂 Angreifer Konfiguration", expanded=True):
         dice_options[st.selectbox("Würfeltyp 3", dice_options.keys(), key="a_die_3")],
     ]
 
-    st.markdown("**Boni auf Würfelergebnisse (nicht an Würfel gebunden)**")
+    st.markdown("**Boni auf Würfelergebnisse**")
     attacker_bonus_1 = st.number_input("Bonus auf höchsten Würfel", value=0, key="a_bonus_highest")
     attacker_bonus_2 = st.number_input("Bonus auf zweithöchsten Würfel", value=0, key="a_bonus_second")
     attacker_bonus_3 = st.number_input("Bonus auf dritthöchsten Würfel", value=0, key="a_bonus_third")
@@ -262,3 +260,7 @@ if st.button("▶️ Simulation starten"):
         st.info("⚖️ Beide Seiten haben ungefähr gleich gute Chancen.")
 
     st.caption(f"📈 Typische Schwankung: ±{att_std:.2f} Truppen beim Angreifer, ±{def_std:.2f} beim Verteidiger")
+
+st.markdown("")  # a bit of space in between
+if st.button("🔄 Alles zurücksetzen"):
+    st.experimental_rerun()
