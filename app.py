@@ -263,4 +263,5 @@ if st.button("▶️ Simulation starten"):
 
 st.markdown("")  # a bit of space in between
 if st.button("🔄 Alles zurücksetzen"):
-    st.experimental_rerun()
+    st.rerun()
+
